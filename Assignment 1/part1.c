@@ -13,7 +13,7 @@ struct Element{
 	int freq;
 } *HashTable[ARRAY_SIZE] = {NULL};
 
-int hash1(char *s){
+int customHash(char *s){
 	int hash=0;
 	while(*s){
 		hash=(hash+*s-'A')%ARRAY_SIZE;
@@ -22,36 +22,24 @@ int hash1(char *s){
 	return hash;
 }
 
-int hash3(char *s){
-	int hash=0;
-	while(*s){
-		hash=1+(hash+*s-'A')%(ARRAY_SIZE-1);
-		s++;
-	}
-	return hash;
-}
-
 Element *searchHashTable(char *name){
 	Element *ele;
-	int h1=hash1(name),h2=hash3(name),i=0;
+	int hashValue=customHash(name);
 
-	int hashIndex = h1 + i*h2;
-
-	while(HashTable[hashIndex]!=NULL){
-		if(!strcmp(HashTable[hashIndex]->name,name)){
-			ele=HashTable[hashIndex];
+	while(HashTable[hashValue]!=NULL){
+		if(!strcmp(HashTable[hashValue]->name,name)){
+			ele=HashTable[hashValue];
 			return ele;
 		}
-		// this is for double hashing 
-		i++;
-		hashIndex = (h1 + i*h2)%ARRAY_SIZE;
+		// this is for linear probing
+		hashValue=(hashValue+1)%ARRAY_SIZE;
 	}
 	return NULL;
 }
 
 void appendHashTable(char *name){
 	Element *new=searchHashTable(name);
-	
+
 	if(new!=NULL){
 		new->freq++;
 		return;
@@ -63,17 +51,14 @@ void appendHashTable(char *name){
 	newElement->name=(char*)(malloc(MAX_STRING_SIZE*sizeof(char)));
 	strcpy(newElement->name,name);
 
-	int h1=hash1(name),h2=hash3(name),i=0;
+	int index=customHash(name);
 
-	int hashIndex = h1 + i*h2;
-
-	while(HashTable[hashIndex]!=NULL){
-		// this is for double hashing
-		i++;
-		hashIndex = (h1 + i*h2)%ARRAY_SIZE;
+	while(HashTable[index]!=NULL){
+		// this is for linear probing
+		index=(index+1)%ARRAY_SIZE;
 		collisions++;
 	}
-	HashTable[hashIndex]=newElement;
+	HashTable[index]=newElement;
 }
 
 void fileLoader(FILE *csv){
@@ -111,8 +96,11 @@ int main(int argc,char **argv){
 	int hashValue;
 	for(int i=0;i<ARRAY_SIZE;i++){
 		if(HashTable[i]!=NULL) {
+			// printf("Name:%s Freq:%d\n",HashTable[i]->name,HashTable[i]->freq);
 			terms++;
-		} 	
+		} else{
+			// printf("NULL\n");
+		}
 	}
 
 

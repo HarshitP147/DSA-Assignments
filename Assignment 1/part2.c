@@ -13,18 +13,19 @@ struct Element{
 	int freq;
 } *HashTable[ARRAY_SIZE] = {NULL};
 
-int hash1(char *s){
-	int hash=0;
+int customHash(char *s){
+	int hash=0,ascii;
 	while(*s){
-		hash=(hash+*s-'A')%ARRAY_SIZE;
+		ascii=*s;
+		hash+=(ascii)%(ARRAY_SIZE-1);
 		s++;
 	}
-	return hash;
+	return hash%(ARRAY_SIZE+1);
 }
 
 Element *searchHashTable(char *name){
 	Element *ele;
-	int hashValue=hash1(name);
+	int hashValue=customHash(name);
 
 	while(HashTable[hashValue]!=NULL){
 		if(!strcmp(HashTable[hashValue]->name,name)){
@@ -39,7 +40,7 @@ Element *searchHashTable(char *name){
 
 void appendHashTable(char *name){
 	Element *new=searchHashTable(name);
-	
+
 	if(new!=NULL){
 		new->freq++;
 		return;
@@ -51,7 +52,7 @@ void appendHashTable(char *name){
 	newElement->name=(char*)(malloc(MAX_STRING_SIZE*sizeof(char)));
 	strcpy(newElement->name,name);
 
-	int index=hash1(name);
+	int index=customHash(name);
 
 	while(HashTable[index]!=NULL){
 		// this is for linear probing
@@ -94,12 +95,12 @@ int main(int argc,char **argv){
 	printf(" Capacity: %d\n",ARRAY_SIZE);
 
 	int hashValue;
-	for(int i=0;i<ARRAY_SIZE;i++){
+	for(int i=0;i<ARRAY_SIZE+1;i++){
 		if(HashTable[i]!=NULL) {
-			// printf("Name:%s Freq:%d\n",HashTable[i]->name,HashTable[i]->freq);
+			printf("%d. Name:%s Freq:%d\n",i,HashTable[i]->name,HashTable[i]->freq);
 			terms++;
 		} else{
-			// printf("NULL\n");
+			printf("%d. NULL\n",i);
 		}
 	}
 
