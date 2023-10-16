@@ -97,11 +97,9 @@ int main(int argc,char **argv){
 	int hashValue;
 	for(int i=0;i<ARRAY_SIZE+1;i++){
 		if(HashTable[i]!=NULL) {
-			printf("%d. Name:%s Freq:%d\n",i,HashTable[i]->name,HashTable[i]->freq);
+			// printf("%d. Name:%s Freq:%d\n",i,HashTable[i]->name,HashTable[i]->freq);
 			terms++;
-		} else{
-			printf("%d. NULL\n",i);
-		}
+		} 
 	}
 
 

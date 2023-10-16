@@ -13,7 +13,7 @@ struct Element{
 	int freq;
 } *HashTable[ARRAY_SIZE] = {NULL};
 
-int customHash(char *s){
+int hash1(char *s){
 	int hash=0;
 	while(*s){
 		hash=(hash+*s-'A')%ARRAY_SIZE;
@@ -24,7 +24,7 @@ int customHash(char *s){
 
 Element *searchHashTable(char *name){
 	Element *ele;
-	int hashValue=customHash(name);
+	int hashValue=hash1(name);
 
 	while(HashTable[hashValue]!=NULL){
 		if(!strcmp(HashTable[hashValue]->name,name)){
@@ -51,7 +51,7 @@ void appendHashTable(char *name){
 	newElement->name=(char*)(malloc(MAX_STRING_SIZE*sizeof(char)));
 	strcpy(newElement->name,name);
 
-	int index=customHash(name);
+	int index=hash1(name);
 
 	while(HashTable[index]!=NULL){
 		// this is for linear probing
