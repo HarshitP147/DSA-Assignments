@@ -3,7 +3,7 @@
 void selectionSort(int arr[], int size);
 void insertionSort(int arr[], int size);
 int partition(int arr[],int left,int right);
-void quickSort(int arr[], int size);
+void quickSort(int arr[], int left,int right);
 
 extern int number_comparisons;
 extern int number_swaps;
