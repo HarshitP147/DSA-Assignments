@@ -2,8 +2,8 @@
 #define T2_H_
 void selectionSort(int arr[], int size);
 void insertionSort(int arr[], int size);
-int partition(int arr[],int left,int right);
-void quickSort(int arr[], int left,int right);
+void quickSortRecursive(int arr[],int left,int right);
+void quickSort(int arr[],int size);
 
 extern int number_comparisons;
 extern int number_swaps;
