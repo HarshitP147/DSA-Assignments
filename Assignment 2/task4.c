@@ -1,35 +1,71 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define max_len 250
+#define ARRAY_SIZE 20000
 
 typedef struct Game game;
 struct Game{
-	char *title;
-	char *platform;
-	int score;
-	int releaseYear;
+	char *title,*platform;
+	int score,releaseYear;
 };
 
-int next_field(FILE *csv,char *buffer,int max_len){
-	int r_value,i=0,firstline=1,inside_quotes=0;
-	char c;
-	while(!feof(csv)){
-		c = fgetc(csv);
-		if(c=='#') firstline=1;
-		if(c=='"') continue;
-		if(c=='\n') firstline=0;
-		if(!firstline){
-			if(c==',' || c=='\n' || feof(csv)){
-				buffer[i++] = '\0';
-				(c==',') ? printf("%s \n",buffer) : printf("%s\n\n",buffer);
-				r_value = c==',' ? 0 : 1;
-				i=0;
-				buffer=(char*)(malloc(max_len));
-				continue;
+// function that extracts the buffer data into a struct
+void extractBufferData(char *buffer){
+	char c,*field=(char*)(malloc(max_len*sizeof(char)));
+	int i=0,x=0,col=1;
+
+	game GameInfo;
+
+	GameInfo.title=(char*)(malloc(max_len*sizeof(char)));
+	GameInfo.platform=(char*)(malloc(max_len*sizeof(char)));
+	GameInfo.score=0;
+	GameInfo.releaseYear=0;
+
+	for(int i=0;i<strlen(buffer);i++){
+		c=buffer[i];
+		if(c==',' || c=='\n'){
+			switch(col){
+				case 1:
+					strcpy(GameInfo.title,field);
+					break;
+				case 2:
+					strcpy(GameInfo.platform,field);
+					break;
+				case 3:
+					GameInfo.score=atoi(field);
+					break;
+				case 4:
+					GameInfo.releaseYear=atoi(field);
+					break;
 			}
-			buffer[i++] = c;
+			col++;
+			x=0;
+			field=(char*)(malloc(max_len*sizeof(char)));
+			continue;
 		}
+		field[x++]=c;
 	}
-	return r_value;
+
+	// the struct we declared at the start of the function now stores the value
+	
+	free(field);
+}
+
+
+void fileParser(FILE *csv){
+	char c;
+	char *buffer=(char*)(malloc(max_len*sizeof(char)));
+	int len,x=0;
+
+	while(c!='\n') c=fgetc(csv); // this way we have skipped the first line
+	
+	// we scan the entire the line and store it in the buffer
+	while(fgets(buffer,max_len,csv)){
+		extractBufferData(buffer);
+	}
+	free(buffer);
 }
 
 int main(int argc,char *argv[]){
@@ -41,16 +77,8 @@ int main(int argc,char *argv[]){
 		return -1;
 	}
 
-	int max_len=1000000;
-	char *buffer=(char*)(malloc(max_len));
+	fileParser(csv);
 
-	int value = next_field(csv,buffer,max_len);
-
-	do{
-		value = next_field(csv,buffer,max_len);
-	}while(!feof(csv));
-
-	free(buffer);
 	fclose(csv);
 
 	return 0;
