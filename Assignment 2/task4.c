@@ -16,7 +16,7 @@ struct Game{
 // function that extracts the buffer data into a struct
 void extractBufferData(char *buffer){
 	char c,*field=(char*)(malloc(max_len*sizeof(char)));
-	int i=0,x=0,col=1;
+	int i=0,x=0,col=1,insideQuotes=0;
 
 	game GameInfo;
 
@@ -29,7 +29,13 @@ void extractBufferData(char *buffer){
 
 	for(int i=0;i<strlen(buffer);i++){
 		c=buffer[i];
-		if(c==',' || c=='\n'){
+		if(c==',' && insideQuotes){
+			continue;
+		}
+		else if(c=='"'){
+			insideQuotes=1-insideQuotes;
+		}
+		else if(c==',' || c=='\n'){
 			switch(col){
 				case 1:
 					strcpy(GameInfo.title,field);
@@ -49,7 +55,9 @@ void extractBufferData(char *buffer){
 			field=(char*)(malloc(max_len*sizeof(char)));
 			continue;
 		}
-		field[x++]=c;
+		else{
+			field[x++]=c;
+		}
 	}
 
 	// the struct we declared at the start of the function now stores the value
@@ -157,7 +165,7 @@ int main(int argc,char *argv[]){
 
 	game temp;
 
-	for(int i=0;i<arrayIndex;i++){
+	for(int i=0;i<20;i++){
 		temp=GameArray[i];
 		printf("Title:%s\n",temp.title);
 		printf("Platform:%s\n",temp.platform);
