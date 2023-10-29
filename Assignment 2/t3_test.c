@@ -5,7 +5,7 @@
 #include "t2.h"
 
 #include "t1_skeleton.c"
-#include "t2_skeleton.c"
+#include "ritish.c"
 
 int is_sorted(int* array, int size){
     int i=0;
@@ -70,8 +70,12 @@ void test_all_functions_for_given_size(int size){
 
     printf("  Insertion sort\n");
     test_all_arrays_of_given_size(insertionSort, size);
-    printf("  Quick sort\n");
 
+    printf("  Quick sort\n");
+    test_all_arrays_of_given_size(quickSort, size);
+    printf("\n\n");
+
+	printf("  Merge sort\n");
     test_all_arrays_of_given_size(quickSort, size);
     printf("\n\n");
 }

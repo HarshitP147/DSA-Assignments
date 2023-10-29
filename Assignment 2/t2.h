@@ -5,6 +5,10 @@ void insertionSort(int arr[], int size);
 void quickSortRecursive(int arr[],int left,int right);
 void quickSort(int arr[],int size);
 
+void merge(int arr[],int mid,int left,int right);
+void mergeSortRecursive(int arr[],int left,int right);
+void mergeSort(int arr[],int size);
+
 extern int number_comparisons;
 extern int number_swaps;
 

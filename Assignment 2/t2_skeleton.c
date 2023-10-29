@@ -74,3 +74,54 @@ void quickSortRecursive(int arr[], int left, int right) {
         quickSortRecursive(arr, pivot + 1, right);
     }
 }
+
+void merge(int arr[],int mid,int left,int right){
+	// get the size of two arrays 
+	int n1=mid-left+1,n2=right-mid;
+	
+	int arr1[n1],arr2[n2];
+
+	for(int i=0;i<n1;i++){
+		arr1[i]=arr[left+i];
+	}
+
+	for(int j=0;j<n2;j++){
+		arr2[j]=arr[j+mid+1];
+	}
+
+
+	// now merge the two arrays
+	int i=0,j=0,k=left;
+	while(i!=n1 && j!=n2){
+		if(arr1[i]<arr2[j]){
+			arr[k]=arr1[i++];
+		}
+		else{
+			arr[k]=arr2[j++];
+		}
+		k++;
+	}
+
+	// incase some elements are remaining in the arrays
+	while(i<n1){
+		arr[k++]=arr1[i++];
+	}
+	while(j<n2){
+		arr[k++]=arr2[j++];
+	}
+ }
+
+void mergeSortRecursive(int arr[],int left,int right){
+	if(left<right){
+		int mid=(left+right)/2;
+		mergeSortRecursive(arr,left,mid);
+		mergeSortRecursive(arr,mid+1,right);
+
+		merge(arr,mid,left,right);
+	}
+}
+
+void mergeSort(int arr[],int size){
+	mergeSortRecursive(arr,0,size);
+}
+
