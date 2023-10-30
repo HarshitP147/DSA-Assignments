@@ -70,6 +70,7 @@ void quickSort(int arr[], int size) {
 void quickSortRecursive(int arr[], int left, int right) {
     if (left < right) {
         int pivot = partition(arr, left, right);
+
         quickSortRecursive(arr, left, pivot);
         quickSortRecursive(arr, pivot + 1, right);
     }
@@ -88,7 +89,6 @@ void merge(int arr[],int mid,int left,int right){
 	for(int j=0;j<n2;j++){
 		arr2[j]=arr[j+mid+1];
 	}
-
 
 	// now merge the two arrays
 	int i=0,j=0,k=left;

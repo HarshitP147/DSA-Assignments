@@ -5,7 +5,7 @@
 #include "t2.h"
 
 #include "t1_skeleton.c"
-#include "ritish.c"
+#include "t2_skeleton.c"
 
 int is_sorted(int* array, int size){
     int i=0;
