@@ -74,10 +74,6 @@ void test_all_functions_for_given_size(int size){
     printf("  Quick sort\n");
     test_all_arrays_of_given_size(quickSort, size);
     printf("\n\n");
-
-	printf("  Merge sort\n");
-    test_all_arrays_of_given_size(quickSort, size);
-    printf("\n\n");
 }
 
 
