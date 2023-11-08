@@ -4,6 +4,7 @@
 typedef struct Tree_Node Tree_Node;
 struct Tree_Node{
 	char data;
+	int freq;
 	Tree_Node *left;
 	Tree_Node *right;
 };

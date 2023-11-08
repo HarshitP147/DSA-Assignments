@@ -35,13 +35,25 @@ void printTree(node *root){
 
 int main(){
 	node *root=NULL;
-	
-	char *data="abc";
+
+	char *data = "FLOCCINAUCINIHILIPILIFICATION";
 
 	root=create_bst(data);
-	
-	printTree(root);
+
+	tree_print_sorted(root);
 	printf("\n");
+
+	char search;
+	printf("Enter the character that you are searching for:");
+	scanf("%c",&search);
+
+	node *searchNode=tree_search(root,search);
+	if(searchNode==NULL){
+		printf("Character not present in the string.\n");
+	} else{
+		printf("Character :%c\n",searchNode->data);
+		printf("Frequency :%d\n",searchNode->freq);
+	}
 
 	return 0;
 }
