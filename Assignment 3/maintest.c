@@ -55,5 +55,8 @@ int main(){
 		printf("Frequency :%d\n",searchNode->freq);
 	}
 
+	printf("Deleting the entire tree.\n");
+	tree_delete(root);
+
 	return 0;
 }

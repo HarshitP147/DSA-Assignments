@@ -5,29 +5,34 @@
 
 typedef Tree_Node node;
 
+Tree_Node *createNode(char data){
+	Tree_Node *newNode = (Tree_Node*)(malloc(sizeof(Tree_Node)));
+	if(newNode){
+		newNode->data=data;
+		newNode->freq=1;
+		newNode->left=NULL;
+		newNode->right=NULL;
+	}
+	return newNode;
+}
+
 void tree_insert(Tree_Node **root,char data){
 	if((*root)==NULL){
-		(*root)=(Tree_Node*)(malloc(sizeof(Tree_Node)));
-		(*root)->data=data;
-		(*root)->freq=1;
-		(*root)->left=NULL;
-		(*root)->right=NULL;
+		(*root)=createNode(data);
 		return;
 	}
-	else{
-		int rootASCII=(*root)->data;
-		int inpASCII=data;
 
-		if(inpASCII<rootASCII){
-			tree_insert(&(*root)->left,data);
-		}
-		if(inpASCII==rootASCII){
-			(*root)->freq++;
-			return;
-		}
-		if(inpASCII>rootASCII){
-			tree_insert(&(*root)->right,data);
-		}
+	int rootASCII=(*root)->data;
+	int inpASCII=data;
+
+	if(inpASCII<rootASCII){
+		tree_insert(&(*root)->left,data);
+	}
+	else if(inpASCII>rootASCII){
+		tree_insert(&(*root)->right,data);
+	}
+	else{
+		(*root)->freq+=1;
 	}
 }
 
@@ -73,14 +78,18 @@ void tree_print_sorted(Tree_Node *root){
 	if(root!=NULL){
 		tree_print_sorted(root->left);
 		for(int i=0;i<root->freq;i++){
-			printf("%c ",root->data);
+			printf("%c",root->data);
 		}
 		tree_print_sorted(root->right);
 	}
 }
 
 void tree_delete(Tree_Node *root){
-	// delete the entire tree including each of it's node without any memory leak
-	
+	// we delete the tree using post order traversal
+	if(root!=NULL){
+		tree_delete(root->left);
+		tree_delete(root->right);
+		free(root);
+	}
 }
 
