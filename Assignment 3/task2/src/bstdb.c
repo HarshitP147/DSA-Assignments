@@ -1,5 +1,9 @@
 #include "bstdb.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 // Write your submission in this file
 //
 // A main function and some profiling tools have already been set up to test
@@ -35,6 +39,34 @@
 // need more functionality than what is provided by these 6 functions, you
 // may write additional functions in this file.
 
+#define MAX_LEN 50
+
+typedef struct DbNode DbNode;
+struct DbNode{
+	int bookId;
+	char *name;
+	int wordCount;
+	char *author;
+	DbNode *left;
+	DbNode *right;
+} *dbRoot;
+
+int num_search;
+int num_comp;
+
+static DbNode *initializeNode(){
+	DbNode *newRec=(DbNode*)(malloc(sizeof(DbNode)));
+
+	newRec->name=(char*)(malloc(MAX_LEN*sizeof(char)));
+	newRec->author=(char*)(malloc(MAX_LEN*sizeof(char)));
+
+	newRec->bookId=0;
+	
+	newRec->left=NULL;
+	newRec->right=NULL;
+
+	return newRec;
+}
 
 int
 bstdb_init ( void ) {
@@ -42,7 +74,25 @@ bstdb_init ( void ) {
 	// starts. Use it to allocate any memory you want to use or initialize 
 	// some globals if you need to. Function should return 1 if initialization
 	// was successful and 0 if something went wrong.
+
+	dbRoot=NULL;
+
+	num_search=0;
+	num_comp=0;
+
 	return 1;
+}
+
+static void addNewNode(DbNode **root,DbNode **newNode){
+	// it is garaunteed that the database root is not NULL
+	if((*root)==NULL){
+		(*root)=(*newNode);
+		return;
+	} else if((*newNode)->bookId<(*root)->bookId){
+		addNewNode(&(*root)->left,&(*newNode));
+	} else{
+		addNewNode(&(*root)->right,&(*newNode));
+	}
 }
 
 int
@@ -61,7 +111,37 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	//
 	// If something goes wrong and the data cannot be stored, this function
 	// should return -1. Otherwise it should return the ID of the new node
-	return -1;
+
+	DbNode *newNode=initializeNode();
+
+	if(newNode==NULL) return -1;
+
+	newNode->bookId=rand()%(5000000) + 1; // this is a function that assigns values between 1 and 5000000 both inclusive
+
+	newNode->name=name;
+	newNode->author=author;
+	
+	newNode->wordCount=word_count;
+
+	if(dbRoot==NULL){
+		dbRoot=newNode;
+	} else{
+		addNewNode(&dbRoot,&newNode);
+	}
+
+	return newNode->bookId;
+}
+
+static DbNode *searchNode(DbNode **root,int docId){
+	if(docId<(*root)->bookId){
+		searchNode(&(*root)->left,docId);
+	}
+	else if(docId==(*root)->bookId){
+		return (*root);
+	}
+	else if(docId>(*root)->bookId){
+		searchNode(&(*root)->right,docId);
+	}
 }
 
 int
@@ -70,7 +150,10 @@ bstdb_get_word_count ( int doc_id ) {
 	// and return the word_count of the node with the corresponding doc_id.
 	//
 	// If the required node is not found, this function should return -1
-	return -1;
+
+	DbNode *search = searchNode(&dbRoot,doc_id);
+
+	return (search==NULL) ? -1 : search->wordCount;
 }
 
 char*
@@ -79,7 +162,10 @@ bstdb_get_name ( int doc_id ) {
 	// and return the name of the node with the corresponding doc_id.
 	//
 	// If the required node is not found, this function should return NULL or 0
-	return 0;
+	
+	DbNode *search = searchNode(&dbRoot,doc_id);
+
+	return (search==NULL) ? NULL : search->name;
 }
 
 void
@@ -102,6 +188,21 @@ bstdb_stat ( void ) {
 	//
 	//  + Can you prove that there are no accidental duplicate document IDs
 	//    in the tree?
+
+	printf("\n");
+}
+
+static void deleteDatabaseNodes(DbNode **root){
+	if((*root)==NULL) return;
+	else{
+		deleteDatabaseNodes(&(*root)->left);
+		deleteDatabaseNodes(&(*root)->right);
+
+		free((*root)->name);
+		free((*root)->author);
+
+		free((*root));
+	}
 }
 
 void
@@ -109,4 +210,6 @@ bstdb_quit ( void ) {
 	// This function will run once (and only once) when the program ends. Use
 	// it to free any memory you allocated in the course of operating the
 	// database.
+
+	deleteDatabaseNodes(&dbRoot);
 }

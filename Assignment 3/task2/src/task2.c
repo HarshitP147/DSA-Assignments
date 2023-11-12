@@ -95,14 +95,11 @@ main ( int argc, char *argv[] ) {
     }
 
     // you can comment out this line to ignore profiling the linked list
-    profile( "listdb", database_bind_listdb );
+    // profile( "listdb", database_bind_listdb );
 
     profile( "bstdb", database_bind_bstdb );
 
     profiler_quit();
-
-    puts("Press Enter to quit...");
-    fgetc(stdin);
 
     return EXIT_SUCCESS;
 }
