@@ -61,6 +61,7 @@ static DbNode *initializeNode(){
 	newRec->author=(char*)(malloc(MAX_LEN*sizeof(char)));
 
 	newRec->bookId=0;
+	newRec->wordCount=0;
 	
 	newRec->left=NULL;
 	newRec->right=NULL;
@@ -84,7 +85,7 @@ bstdb_init ( void ) {
 }
 
 static void addNewNode(DbNode **root,DbNode **newNode){
-	// it is garaunteed that the database root is not NULL
+	// it is guaranteed that the database root is not NULL
 	if((*root)==NULL){
 		(*root)=(*newNode);
 		return;
@@ -133,13 +134,16 @@ bstdb_add ( char *name, int word_count, char *author ) {
 }
 
 static DbNode *searchNode(DbNode **root,int docId){
+	num_search++;
 	if(docId<(*root)->bookId){
+		num_comp++;
 		searchNode(&(*root)->left,docId);
 	}
 	else if(docId==(*root)->bookId){
 		return (*root);
 	}
 	else if(docId>(*root)->bookId){
+		num_comp++;
 		searchNode(&(*root)->right,docId);
 	}
 }
@@ -189,20 +193,11 @@ bstdb_stat ( void ) {
 	//  + Can you prove that there are no accidental duplicate document IDs
 	//    in the tree?
 
-	printf("\n");
+	printf("Number of comparisons per search:%lf\n",(float)num_comp/num_search);
 }
 
-static void deleteDatabaseNodes(DbNode **root){
-	if((*root)==NULL) return;
-	else{
-		deleteDatabaseNodes(&(*root)->left);
-		deleteDatabaseNodes(&(*root)->right);
-
-		free((*root)->name);
-		free((*root)->author);
-
-		free((*root));
-	}
+static void deleteDatabaseNodes(DbNode *root){
+	// delete this using loop function
 }
 
 void
@@ -211,5 +206,5 @@ bstdb_quit ( void ) {
 	// it to free any memory you allocated in the course of operating the
 	// database.
 
-	deleteDatabaseNodes(&dbRoot);
+	deleteDatabaseNodes(dbRoot);
 }
