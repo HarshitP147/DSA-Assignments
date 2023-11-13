@@ -54,7 +54,7 @@ struct DbNode{
 int num_search;
 int num_comp;
 
-static DbNode *initializeNode(){
+static DbNode *initializeNode(void){
 	DbNode *newRec=(DbNode*)(malloc(sizeof(DbNode)));
 
 	newRec->name=(char*)(malloc(MAX_LEN*sizeof(char)));
@@ -119,8 +119,8 @@ bstdb_add ( char *name, int word_count, char *author ) {
 
 	newNode->bookId=rand()%(5000000) + 1; // this is a function that assigns values between 1 and 5000000 both inclusive
 
-	newNode->name=name;
-	newNode->author=author;
+	strcpy(newNode->name,name);
+	strcpy(newNode->author,author);
 	
 	newNode->wordCount=word_count;
 
@@ -135,17 +135,26 @@ bstdb_add ( char *name, int word_count, char *author ) {
 
 static DbNode *searchNode(DbNode **root,int docId){
 	num_search++;
-	if(docId<(*root)->bookId){
-		num_comp++;
-		searchNode(&(*root)->left,docId);
+	DbNode *search=*root;
+
+	while(1){
+		if(docId<search->bookId){
+			search=search->left;
+		}
+		else if(docId==search->bookId){
+			break;
+		}
+		else if(docId>search->bookId){
+			search=search->right;
+		}
+		else{
+			search=NULL;
+			break;
+		}
+		num_comp+=4;
 	}
-	else if(docId==(*root)->bookId){
-		return (*root);
-	}
-	else if(docId>(*root)->bookId){
-		num_comp++;
-		searchNode(&(*root)->right,docId);
-	}
+
+	return search;
 }
 
 int
@@ -193,11 +202,23 @@ bstdb_stat ( void ) {
 	//  + Can you prove that there are no accidental duplicate document IDs
 	//    in the tree?
 
+
 	printf("Number of comparisons per search:%lf\n",(float)num_comp/num_search);
 }
 
-static void deleteDatabaseNodes(DbNode *root){
-	// delete this using loop function
+static void deleteDatabaseNodes(DbNode **root){
+	if((*root)==NULL){
+		return;
+	}
+
+	deleteDatabaseNodes(&(*root)->left);
+	deleteDatabaseNodes(&(*root)->right);
+
+	// if((*root)->name) free((*root)->name); 
+	// if((*root)->author) free((*root)->author); 
+	
+	
+	free((*root));
 }
 
 void
@@ -206,5 +227,6 @@ bstdb_quit ( void ) {
 	// it to free any memory you allocated in the course of operating the
 	// database.
 
-	deleteDatabaseNodes(dbRoot);
+	// printf("Balance factor:%d\n",getBalanceFactor(&dbRoot));
+	deleteDatabaseNodes(&dbRoot);
 }
