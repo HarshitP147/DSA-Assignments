@@ -39,7 +39,7 @@
 // need more functionality than what is provided by these 6 functions, you
 // may write additional functions in this file.
 
-#define MAX_LEN 50
+#define MAX_LEN 75
 
 typedef struct DbNode DbNode;
 struct DbNode{
@@ -47,12 +47,19 @@ struct DbNode{
 	char *name;
 	int wordCount;
 	char *author;
+	int nodeDbHeight;
+
 	DbNode *left;
 	DbNode *right;
 } *dbRoot;
 
 int num_search;
 int num_comp;
+
+// utility function to get maximum out of two numbers
+int max(int x,int y){
+	return (x>y) ? x : y;
+}
 
 static DbNode *initializeNode(void){
 	DbNode *newRec=(DbNode*)(malloc(sizeof(DbNode)));
@@ -62,6 +69,8 @@ static DbNode *initializeNode(void){
 
 	newRec->bookId=0;
 	newRec->wordCount=0;
+
+	newRec->nodeDbHeight=0;
 	
 	newRec->left=NULL;
 	newRec->right=NULL;
@@ -84,7 +93,7 @@ bstdb_init ( void ) {
 	return 1;
 }
 
-int getBalanceFactor(DbNode *root){
+static int getBalanceFactor(DbNode *root){
 	// get the balance factor of the tree from the root node
 	// a negative number means that the tree is heavy on the right
 	// a positive number means that the tree is heavy on the left
@@ -108,20 +117,71 @@ int getBalanceFactor(DbNode *root){
 	}
 }
 
+static int height(DbNode *root)	{
+	return (root==NULL) ? 0 : root->nodeDbHeight;
+}
+
+static DbNode *rightRotate(DbNode **root){
+	DbNode *temp=(*root)->left;
+	(*root)->left=temp->right;
+	temp->right=*root;
+
+	(*root)->nodeDbHeight=1+max(height((*root)->left),height((*root)->right));
+	temp->nodeDbHeight=1+max(height(temp->left),height(temp->right));
+
+	return temp;
+}
+
+static DbNode *leftRotate(DbNode **root){
+	DbNode *temp=(*root)->left;
+	(*root)->right=temp->left;
+	temp->left=(*root);
+
+	(*root)->nodeDbHeight=1+max(height((*root)->left),height((*root)->right));
+	temp->nodeDbHeight=1+max(height(temp->left),height(temp->right));
+
+	return temp;
+}
+
 static void addNewNode(DbNode **root,DbNode **newNode){
-	// it is guaranteed that the database root is not NULL
 	if((*root)==NULL){
+		(*root)=(*newNode);
+   		int balance = getBalanceFactor((*root));
+   		if (balance > 1 && (*newNode)->bookId < (*root)->left->bookId)
+      		rightRotate(root);
+   		if (balance < -1 && (*newNode)->bookId > (*root)->right->bookId)
+      		leftRotate(root);
+   		if (balance > 1 && (*newNode)->bookId > (*root)->left->bookId) {
+      		(*root)->left = leftRotate(&(*root)->left);
+      		rightRotate(root);
+   		}
+  		if (balance < -1 && (*newNode)->bookId < (*root)->right->bookId) {
+      		(*root)->right = rightRotate(&(*root)->right);
+      		leftRotate(root);
+		}
 		(*root)=(*newNode);
 		return;
 	} else if((*newNode)->bookId<(*root)->bookId){
+		(*newNode)->nodeDbHeight++;
 		addNewNode(&(*root)->left,&(*newNode));
 	} else{
+		(*newNode)->nodeDbHeight++;
 		addNewNode(&(*root)->right,&(*newNode));
 	}
+	
 }
 
-void optimizeDatabaseTree(DbNode **root,int balanceFactor){
+static void optimizeDatabaseTree(DbNode **root){
+	int bf=getBalanceFactor(*root);	
 
+	if(bf<-1){
+		*root=leftRotate(root);
+	}
+	else if(bf>1){
+		*root=rightRotate(root);
+	} else{
+		return;
+	}
 }
 
 int
@@ -159,12 +219,7 @@ bstdb_add ( char *name, int word_count, char *author ) {
 	}
 
 	// after addition and before returning the root node bookId, we optimize the tree structure here
-	// we will use AVL trees
-	int bf=getBalanceFactor(dbRoot);
-	if(!(bf==-1 || bf==0 || bf==1)){
-		// the tree needs to be optimized 
-		optimizeDatabaseTree(&dbRoot,bf);
-	}
+	// optimizeDatabaseTree(&dbRoot);
 
 	return newNode->bookId;
 }
