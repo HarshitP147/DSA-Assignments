@@ -84,6 +84,30 @@ bstdb_init ( void ) {
 	return 1;
 }
 
+int getBalanceFactor(DbNode *root){
+	// get the balance factor of the tree from the root node
+	// a negative number means that the tree is heavy on the right
+	// a positive number means that the tree is heavy on the left
+	if(root==NULL) return 0;
+	else{
+		DbNode *leftNode=root,*rightNode=root;
+		
+		int left=0,right=0;
+
+		while(leftNode!=NULL){
+			left++;
+			leftNode=leftNode->left;
+		}
+
+		while(rightNode!=NULL){
+			right++;
+			rightNode=rightNode->right;
+		}
+
+		return left-right;
+	}
+}
+
 static void addNewNode(DbNode **root,DbNode **newNode){
 	// it is guaranteed that the database root is not NULL
 	if((*root)==NULL){
@@ -94,6 +118,10 @@ static void addNewNode(DbNode **root,DbNode **newNode){
 	} else{
 		addNewNode(&(*root)->right,&(*newNode));
 	}
+}
+
+void optimizeDatabaseTree(DbNode **root,int balanceFactor){
+
 }
 
 int
@@ -128,6 +156,14 @@ bstdb_add ( char *name, int word_count, char *author ) {
 		dbRoot=newNode;
 	} else{
 		addNewNode(&dbRoot,&newNode);
+	}
+
+	// after addition and before returning the root node bookId, we optimize the tree structure here
+	// we will use AVL trees
+	int bf=getBalanceFactor(dbRoot);
+	if(!(bf==-1 || bf==0 || bf==1)){
+		// the tree needs to be optimized 
+		optimizeDatabaseTree(&dbRoot,bf);
 	}
 
 	return newNode->bookId;
@@ -213,10 +249,6 @@ static void deleteDatabaseNodes(DbNode **root){
 
 	deleteDatabaseNodes(&(*root)->left);
 	deleteDatabaseNodes(&(*root)->right);
-
-	// if((*root)->name) free((*root)->name); 
-	// if((*root)->author) free((*root)->author); 
-	
 	
 	free((*root));
 }
@@ -227,6 +259,6 @@ bstdb_quit ( void ) {
 	// it to free any memory you allocated in the course of operating the
 	// database.
 
-	// printf("Balance factor:%d\n",getBalanceFactor(&dbRoot));
+	// printf("Balance factor of the tree:%d\n",getBalanceFactor(dbRoot));
 	deleteDatabaseNodes(&dbRoot);
 }
