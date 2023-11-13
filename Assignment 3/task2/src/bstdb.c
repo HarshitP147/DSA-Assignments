@@ -119,8 +119,8 @@ bstdb_add ( char *name, int word_count, char *author ) {
 
 	newNode->bookId=rand()%(5000000) + 1; // this is a function that assigns values between 1 and 5000000 both inclusive
 
-	strcpy(newNode->name,name);
-	strcpy(newNode->author,author);
+	newNode->name=name;
+	newNode->author=author;
 	
 	newNode->wordCount=word_count;
 
