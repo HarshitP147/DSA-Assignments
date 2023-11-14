@@ -2,42 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
-// Write your submission in this file
-//
-// A main function and some profiling tools have already been set up to test
-// your code in the task2.c file. All you need to do is fill out this file
-// with an appropriate Binary Search Tree implementation.
-//
-// The input data will be books. A book is comprised of a title and a word
-// count. You should store both these values in the tree along with a unique
-// integer ID which you will generate.
-//
-// We are aiming for speed here. A BST based database should be orders of
-// magnitude faster than a linked list implementation if the BST is written
-// correctly.
-//
-// We have provided an example implementation of what a linked list based
-// solution to this problem might look like in the db/listdb.c file. If you
-// are struggling to understand the problem or what one of the functions
-// below ought to do, consider looking at that file to see if it helps your
-// understanding.
-//
-// There are 6 functions you need to look at. Each is provided with a comment
-// which explains how it should behave. The functions are:
-//
-//  + bstdb_init
-//  + bstdb_add
-//  + bstdb_get_word_count
-//  + bstdb_get_name
-//  + bstdb_stat
-//  + bstdb_quit
-//
-// Do not rename these functions or change their arguments/return types.
-// Otherwise the profiler will not be able to find them. If you think you
-// need more functionality than what is provided by these 6 functions, you
-// may write additional functions in this file.
+#include <time.h>
 
 #define MAX_LEN 75
 
@@ -47,7 +12,6 @@ struct DbNode{
 	char *name;
 	int wordCount;
 	char *author;
-	int nodeDbHeight;
 
 	DbNode *left;
 	DbNode *right;
@@ -56,12 +20,40 @@ struct DbNode{
 int num_search;
 int num_comp;
 
+int *bookIdRecs;
+int x;
+int k;
+
 // utility function to get maximum out of two numbers
 int max(int x,int y){
 	return (x>y) ? x : y;
 }
 
-static DbNode *initializeNode(void){
+int bookIdSearch(int id,int left,int right){
+	int mid=(left+right)/2;
+
+	int retValue=-1;
+
+	while(left<right){
+		if(id==bookIdRecs[mid]){
+			retValue=mid;
+			break;
+		}
+		else if(id<bookIdRecs[mid]){
+			right=mid-1;
+		}
+		else if(id>bookIdRecs[mid]){
+			left=mid+1;
+		}
+		else{
+			break;
+		}
+	}
+
+	return retValue;
+}
+
+DbNode *initializeNode(void){
 	DbNode *newRec=(DbNode*)(malloc(sizeof(DbNode)));
 
 	newRec->name=(char*)(malloc(MAX_LEN*sizeof(char)));
@@ -69,8 +61,6 @@ static DbNode *initializeNode(void){
 
 	newRec->bookId=0;
 	newRec->wordCount=0;
-
-	newRec->nodeDbHeight=0;
 	
 	newRec->left=NULL;
 	newRec->right=NULL;
@@ -80,132 +70,51 @@ static DbNode *initializeNode(void){
 
 int
 bstdb_init ( void ) {
-	// This function will run once (and only once) when the database first
-	// starts. Use it to allocate any memory you want to use or initialize 
-	// some globals if you need to. Function should return 1 if initialization
-	// was successful and 0 if something went wrong.
-
 	dbRoot=NULL;
 
 	num_search=0;
 	num_comp=0;
 
+	bookIdRecs=(int*)(malloc(500000*sizeof(int)));
+	x=0;
+
+	for(int i=0;i<500000;i++){
+		bookIdRecs[i]=i+1;
+		x++;
+	}
+
+	srand(time(NULL));
+	for(int i=x-1;i>0;i--){
+		int j=rand()%(i+1);
+		int temp=bookIdRecs[i];
+		bookIdRecs[i]=bookIdRecs[j];
+		bookIdRecs[j]=temp;
+	}
+
+	k=0;
+
 	return 1;
 }
 
-static int getBalanceFactor(DbNode *root){
-	// get the balance factor of the tree from the root node
-	// a negative number means that the tree is heavy on the right
-	// a positive number means that the tree is heavy on the left
-	if(root==NULL) return 0;
-	else{
-		DbNode *leftNode=root,*rightNode=root;
-		
-		int left=0,right=0;
-
-		while(leftNode!=NULL){
-			left++;
-			leftNode=leftNode->left;
-		}
-
-		while(rightNode!=NULL){
-			right++;
-			rightNode=rightNode->right;
-		}
-
-		return left-right;
-	}
-}
-
-static int height(DbNode *root)	{
-	return (root==NULL) ? 0 : root->nodeDbHeight;
-}
-
-static DbNode *rightRotate(DbNode **root){
-	DbNode *temp=(*root)->left;
-	(*root)->left=temp->right;
-	temp->right=*root;
-
-	(*root)->nodeDbHeight=1+max(height((*root)->left),height((*root)->right));
-	temp->nodeDbHeight=1+max(height(temp->left),height(temp->right));
-
-	return temp;
-}
-
-static DbNode *leftRotate(DbNode **root){
-	DbNode *temp=(*root)->left;
-	(*root)->right=temp->left;
-	temp->left=(*root);
-
-	(*root)->nodeDbHeight=1+max(height((*root)->left),height((*root)->right));
-	temp->nodeDbHeight=1+max(height(temp->left),height(temp->right));
-
-	return temp;
-}
-
-static void addNewNode(DbNode **root,DbNode **newNode){
+void addNewNode(DbNode **root,DbNode **newNode){
 	if((*root)==NULL){
-		(*root)=(*newNode);
-   		int balance = getBalanceFactor((*root));
-   		if (balance > 1 && (*newNode)->bookId < (*root)->left->bookId)
-      		rightRotate(root);
-   		if (balance < -1 && (*newNode)->bookId > (*root)->right->bookId)
-      		leftRotate(root);
-   		if (balance > 1 && (*newNode)->bookId > (*root)->left->bookId) {
-      		(*root)->left = leftRotate(&(*root)->left);
-      		rightRotate(root);
-   		}
-  		if (balance < -1 && (*newNode)->bookId < (*root)->right->bookId) {
-      		(*root)->right = rightRotate(&(*root)->right);
-      		leftRotate(root);
-		}
 		(*root)=(*newNode);
 		return;
 	} else if((*newNode)->bookId<(*root)->bookId){
-		(*newNode)->nodeDbHeight++;
 		addNewNode(&(*root)->left,&(*newNode));
 	} else{
-		(*newNode)->nodeDbHeight++;
 		addNewNode(&(*root)->right,&(*newNode));
 	}
 	
 }
 
-static void optimizeDatabaseTree(DbNode **root){
-	int bf=getBalanceFactor(*root);	
-
-	if(bf<-1){
-		*root=leftRotate(root);
-	}
-	else if(bf>1){
-		*root=rightRotate(root);
-	} else{
-		return;
-	}
-}
-
 int
 bstdb_add ( char *name, int word_count, char *author ) {
-	// This function should create a new node in the binary search tree, 
-	// populate it with the name, word_count and author of the arguments and store
-	// the result in the tree.
-	//
-	// This function should also generate and return an identifier that is
-	// unique to this document. A user can find the stored data by passing
-	// this ID to one of the two search functions below.
-	//
-	// How you generate this ID is up to you, but it must be an integer. Note
-	// that this ID should also form the keys of the nodes in your BST, so
-	// try to generate them in a way that will result in a balanced tree.
-	//
-	// If something goes wrong and the data cannot be stored, this function
-	// should return -1. Otherwise it should return the ID of the new node
-
 	DbNode *newNode=initializeNode();
 
 	if(newNode==NULL) return -1;
 
-	newNode->bookId=rand()%(5000000) + 1; // this is a function that assigns values between 1 and 5000000 both inclusive
+	newNode->bookId=bookIdRecs[k++];
 
 	newNode->name=name;
 	newNode->author=author;
@@ -218,13 +127,10 @@ bstdb_add ( char *name, int word_count, char *author ) {
 		addNewNode(&dbRoot,&newNode);
 	}
 
-	// after addition and before returning the root node bookId, we optimize the tree structure here
-	// optimizeDatabaseTree(&dbRoot);
-
 	return newNode->bookId;
 }
 
-static DbNode *searchNode(DbNode **root,int docId){
+DbNode *searchNode(DbNode **root,int docId){
 	num_search++;
 	DbNode *search=*root;
 
@@ -250,11 +156,6 @@ static DbNode *searchNode(DbNode **root,int docId){
 
 int
 bstdb_get_word_count ( int doc_id ) {
-	// This is a search function. It should traverse the binary search tree
-	// and return the word_count of the node with the corresponding doc_id.
-	//
-	// If the required node is not found, this function should return -1
-
 	DbNode *search = searchNode(&dbRoot,doc_id);
 
 	return (search==NULL) ? -1 : search->wordCount;
@@ -262,11 +163,6 @@ bstdb_get_word_count ( int doc_id ) {
 
 char*
 bstdb_get_name ( int doc_id ) {
-	// This is a search function. It should traverse the binary search tree
-	// and return the name of the node with the corresponding doc_id.
-	//
-	// If the required node is not found, this function should return NULL or 0
-	
 	DbNode *search = searchNode(&dbRoot,doc_id);
 
 	return (search==NULL) ? NULL : search->name;
@@ -297,7 +193,7 @@ bstdb_stat ( void ) {
 	printf("Number of comparisons per search:%lf\n",(float)num_comp/num_search);
 }
 
-static void deleteDatabaseNodes(DbNode **root){
+void deleteDatabaseNodes(DbNode **root){
 	if((*root)==NULL){
 		return;
 	}
@@ -310,10 +206,6 @@ static void deleteDatabaseNodes(DbNode **root){
 
 void
 bstdb_quit ( void ) {
-	// This function will run once (and only once) when the program ends. Use
-	// it to free any memory you allocated in the course of operating the
-	// database.
-
-	// printf("Balance factor of the tree:%d\n",getBalanceFactor(dbRoot));
+	free(bookIdRecs);
 	deleteDatabaseNodes(&dbRoot);
 }
