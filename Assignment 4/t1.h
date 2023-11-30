@@ -3,7 +3,6 @@
 
 typedef struct Node node;
 struct Node{
-	int key;
 	int numNbr;
 	int *nbr;
 };

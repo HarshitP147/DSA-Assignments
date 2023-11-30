@@ -1,4 +1,6 @@
-#include "t2.h"
+#include <stdio.h>
+
+#include "t2.c"
 
 // converts an upper case character (A-Z) to a numerical value (between 0 and 25) 
 static int char2val ( char c ) {
@@ -7,6 +9,16 @@ static int char2val ( char c ) {
 	}
 
 	return c-'A';
+}
+
+void adjMatrix(Graph *g){
+	for(int i=0;i<g->totalVertices;i++){
+		for(int j=0;j<g->totalVertices;j++){
+			printf("%d\t",g->adjMat[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
 int main(){
@@ -31,4 +43,5 @@ int main(){
     
     delete_graph(graph);
 
+	return 0;
 }
