@@ -1,120 +1,191 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "t3.h"
 
-#define MAX_LEN	50
+#define MAX_LEN 75
 
-typedef struct vertex vertex;
-struct vertex{
+// using adjacency list for representing the graph
+typedef struct Vertex stop;
+struct Vertex{
 	int stopId;
 	char *name;
-	double latitude;
-	double longitude;
-} *vertices[8000];
+	float latitude;
+	float longitude;
+} stops[8000];
 
-int nStops=0;
+typedef struct EdgeBufferData{
+	int vertex1;
+	int vertex2;
+	int weight;
+} edgeBufferData;
 
-// loads the edges from the CSV file of name fname
-int load_edges(char *fname){
-	FILE *csv = fopen(fname,"r");
+typedef struct Destination{
+	int stopId;
+	int cost;
+} destination;
 
-	if(csv==NULL) return 0;
+typedef struct Route{
+	int stopId;
+	destination *stops;
+} route;
 
+typedef struct city{
+	route *routes;	
+} city;
+city *dublinBus;
 
-	return 1;
+int size=1;
+
+stop extracVertextBufferData(char *buffer){
+	char c;
+
+	char *fieldData=(char*)(malloc(MAX_LEN*sizeof(char)));
+	int x=0;
+
+	int fieldIndex=1;
+
+	stop busStop;
+	busStop.stopId=0;
+	busStop.name=(char*)(malloc(MAX_LEN*sizeof(char)));
+	busStop.latitude=0;
+	busStop.longitude=0;
+
+	for(int i=0;i<strlen(buffer);i++){
+		c=buffer[i];
+
+		if(c=='"')  continue;
+		if(c==','){
+			switch(fieldIndex){
+				case 1:
+					busStop.stopId=atoi(fieldData);
+					break;
+
+				case 2:
+					strcpy(busStop.name,fieldData);
+					break;
+
+				case 3:
+					busStop.latitude=atof(fieldData);
+					break;
+			}
+			
+			x=0;
+			fieldData=(char*)(malloc(MAX_LEN*sizeof(char)));
+			fieldIndex++;
+		}
+		else{
+			fieldData[x++]=c;
+		}
+	}
+	if(fieldIndex==4){
+		busStop.longitude=atof(fieldData);
+	}
+
+	return busStop;
 }
 
-// loads the vertices from the CSV file of name fname
 int load_vertices(char *fname){
 	FILE *csv = fopen(fname,"r");
 
 	if(csv==NULL) return 0;
 
+	int k=0;  // counter for the stops array
 	char *buffer = (char*)(malloc(MAX_LEN*sizeof(char)));
-	if(buffer==NULL) return 0;
 
-	int x=1;
-	bool inQuotes=false;
-
-	buffer=fgets(buffer,MAX_LEN,csv);
+	char c; // to read each of the character
 	
-	char *data = (char*)(malloc(MAX_LEN*sizeof(char)));
-	if(data==NULL) return 0;
+	// this is to avoid the first line
+	while(c!='\n') c=fgetc(csv);
 
-	int k=0;
+	stop busStop;
 
-	do{
-		// create a node for the bus stop
-		vertex *busStop = (vertex*)(malloc(sizeof(vertex)));
+	while(fgets(buffer,MAX_LEN,csv)){
+		busStop=extracVertextBufferData(buffer);	
+		stops[k++]=busStop;
+	}
 
-		busStop->name=(char*)(malloc(MAX_LEN*sizeof(char)));
-
-		if(busStop==NULL || busStop->name==NULL) return 0;
-
-		char c;
-		int fieldIndex=0;
-
-		char *fieldData=(char*)(malloc(MAX_LEN*sizeof(char)));
-		int x=0;
-
-		for(int i=0;i<strlen(buffer);i++){
-			c=buffer[i];
-
-			if(c=='"') continue;
-
-			else if(c==','){
-				// this is adding the comma which we do not want
-
-				switch(fieldIndex){
-					case 0:
-						busStop->stopId=atoi(fieldData);
-						printf("Stop number:%d\n",busStop->stopId);
-						break;
-					case 1:
-						strcpy(busStop->name,fieldData);
-						printf("Stop name:%s\n",busStop->name);
-						break;
-					case 2:
-						busStop->latitude=atof(fieldData);
-						printf("Latitude:%f\n",busStop->latitude);
-						break;
-					case 3:
-						busStop->latitude=atof(fieldData);
-						printf("Longitude:%f\n",busStop->longitude);
-						break;
-				}
-
-				// clear the buffer and reset the data
-				fieldData=(char*)(malloc(MAX_LEN*sizeof(char)));
-				x=0;
-				fieldIndex+=1;
-			}
-
-			else{
-				fieldData[x++]=c;
-			}
-		}
-		printf("\n");
-
-		vertices[nStops++] = busStop;
-		
-		
-		buffer=fgets(buffer,MAX_LEN,csv);
-	}while(buffer!=NULL);
-
-	
 	return 1;
 }
 
-// prints the shortest path between startNode and endNode, if there is any
-void shortest_path(int startNode,int endNode){
+void extractEdgeBufferData(char *buffer){
+	char c;
+
+	char *fieldData=(char*)(malloc(MAX_LEN*sizeof(char)));
+	int x=0;
+
+	int fieldIndex=1;
+
+	edgeBufferData temp;
+
+	for(int i=0;i<strlen(buffer);i++){
+		c=buffer[i];
+		if(c=='"') continue;
+		else if(c==','){
+			switch(fieldIndex){
+				case 1:
+					temp.vertex1=atoi(fieldData);
+					break;
+
+				case 2:
+					temp.vertex2=atoi(fieldData);
+					break;
+			}
+			
+			fieldIndex++;
+			fieldData=(char*)(malloc(MAX_LEN*sizeof(char)));
+			x=0;
+		}
+		else{
+			fieldData[x++]=c;
+		}
+	}
+
+	if(fieldIndex==3){
+		temp.weight=atoi(fieldData);
+	}
+
+	// now the real insertion of takes here
+
+	for(int i=0;i<size;i++){
+		if((temp.vertex1==dublinBus->routes[i].stopId) || (temp.vertex2==dublinBus->routes[i].stopId)){
+			int numberStops = sizeof(dublinBus->routes[i].stops)/sizeof(dublinBus->routes[i].stops[0]);
+			
+			// reallocate the previous size
+			dublinBus->routes[i].stops=(destination*)(realloc(dublinBus->routes[i].stops,(++numberStops)*sizeof(destination)));
+
+
+			// check which one is the current equivalent stop
+
+
+			// dublinBus->routes[i].stops[numberStops]={,};
+		}
+	}
 
 }
 
-// frees any memory that was used
-void free_memory(void){
+int load_edges(char *fname){
+	FILE *csv = fopen(fname,"r");
 
+	if(csv==NULL) return 0;
+
+	char c;
+	while(c!='\n') c=fgetc(csv);
+
+	// allocate the size for the adjacency list
+	dublinBus=(city*)(malloc(sizeof(city)));
+	size_t routeSize = sizeof(route);
+	dublinBus->routes=(route*)(malloc(routeSize));
+
+	char *buffer = (char*)(malloc(MAX_LEN*sizeof(char)));
+
+	while(fgets(buffer,MAX_LEN,csv)){
+		extractEdgeBufferData(buffer);	
+		dublinBus->routes=(route*)(realloc(dublinBus->routes,(++size)*sizeof(route)));
+	}
+
+	
+	return 1;
 }
